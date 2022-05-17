@@ -12,7 +12,8 @@ from pathlib import Path
 plt.rcParams["savefig.bbox"] = 'tight'
 
 def main():
-    img = read_image(str(Path('/mnt/c/Users/takagi yugo/Nextcloud/AIR-JAIST/10_M1-研究室/01_研究会/20220419/_2022/images') / 'real.png'))
+    path = '../01_研究会/20220419/_2022/CUT/CUT/'
+    img = read_image(str(Path(path) / '2021-12-27_11:57:53.076322image1.png'))
     show(img)
 
     plt.show()

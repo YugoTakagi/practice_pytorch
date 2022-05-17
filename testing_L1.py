@@ -13,65 +13,56 @@ import torchvision.transforms as T
 from show_image import show
 from crop_image import top_crop
 
+import glob
+
 def main():
     device = torch.device('cpu') 
     l1_loss = torch.nn.L1Loss().to(device)
-
-    real1_img = read_image(str(Path('/mnt/c/Users/takagi yugo/Nextcloud/AIR-JAIST/10_M1-研究室/01_研究会/20220419/_2022/CUT/real') / '2021-12-27_11_57_53.076322image1.png'))
-    real2_img = read_image(str(Path('/mnt/c/Users/takagi yugo/Nextcloud/AIR-JAIST/10_M1-研究室/01_研究会/20220419/_2022/CUT/real') / '2021-12-27_11_58_08.074410image1.png'))
-    fake1_img = read_image(str(Path('/mnt/c/Users/takagi yugo/Nextcloud/AIR-JAIST/10_M1-研究室/01_研究会/20220419/_2022/CUT/CUT') / '2021-12-27_11_57_53.076322image1.png'))
-    fake2_img = read_image(str(Path('/mnt/c/Users/takagi yugo/Nextcloud/AIR-JAIST/10_M1-研究室/01_研究会/20220419/_2022/CUT/CUT') / '2021-12-27_11_58_08.074410image1.png'))
-
-    print('real1_img.shape:', real1_img.shape)
-    print('real2_img.shape:', real2_img.shape)
-    print('fake1_img.shape:', fake1_img.shape)
-    print('fake2_img.shape:', fake2_img.shape)
     
-    # channelsを3にする．
-#    real1_img, img_ = torch.split(real1_img, 3)
-#    real2_img, img_ = torch.split(real2_img, 3)
-#    fake1_img, img_ = torch.split(fake1_img, 3)
-#    fake2_img, img_ = torch.split(fake2_img, 3)
+    dir_real = '../01_研究会/20220419/_2022/CUT/real/*'
+    dir_fake = '../01_研究会/20220419/_2022/CUT/CUT/*'
     
-    # 画像の上1/3を切り抜き．
-    crop_height = int(real1_img.shape[1] / 3)
+    real_image_names = sorted( glob.glob(dir_real) )
+    fake_image_names = sorted( glob.glob(dir_fake) ) 
+    rin = [r.split('/')[-1] for r in real_image_names]
+    fin = [r.split('/')[-1] for r in fake_image_names]
+    print('-> real:\n', rin)
+    print('-> fake:\n', fin, '\n')
+   
+    grid = []
+    real_images = []
+    fake_images = []
+    num_image = len(real_image_names)
+    for i in range(num_image):
+        real_images.append( read_image(str(Path(real_image_names[i]))) )
+        fake_images.append( read_image(str(Path(fake_image_names[i]))) )
+        
+        # channelsを3にする．
+        # real1_img, img_ = torch.split(real1_img, 3)
+        
+        # 画像の上1/3を切り抜き．
+        if i == 0:
+            crop_height = int(real_images[0].shape[1] / 3)
+            print('crop_height:', crop_height)
+        real_images[i] = top_crop(real_images[i], crop_height) * 1.0 
+        fake_images[i] = top_crop(fake_images[i], crop_height) * 1.0 
     
-    real1_img_top = top_crop(real1_img, crop_height)
-    real2_img_top = top_crop(real2_img, crop_height)
-    fake1_img_top = top_crop(fake1_img, crop_height)
-    fake2_img_top = top_crop(fake2_img, crop_height)
-    
-    real1_img_top = (real1_img_top * 1.0)
-    real2_img_top = (real2_img_top * 1.0)
-    fake1_img_top = (fake1_img_top * 1.0)
-    fake2_img_top = (fake2_img_top * 1.0)
+        # 画像をグレーにする．
+        real_images[i] = T.Grayscale(num_output_channels=3)(real_images[i])
+        fake_images[i] = T.Grayscale(num_output_channels=3)(fake_images[i])
+        #real_images[i] = T.Grayscale(num_output_channels=1)(real_images[i])
+        #fake_images[i] = T.Grayscale(num_output_channels=1)(fake_images[i])
+        
+        grid.append(real_images[i])
+        grid.append(fake_images[i])
+        #show(grid) 
 
-    # 画像をグレーにする．
-    gray_real1_img_top = T.Grayscale(num_output_channels=3)(real1_img_top)
-    gray_real2_img_top = T.Grayscale(num_output_channels=3)(real2_img_top)
-    gray_fake1_img_top = T.Grayscale(num_output_channels=3)(fake1_img_top)
-    gray_fake2_img_top = T.Grayscale(num_output_channels=3)(fake2_img_top)
+        # L1損失を計算．
+        #print('l1_loss({}, {}):{}'.format(rin[i], fin[i], l1_loss(real_images[i], fake_images[i]))) 
+        print('l1_loss({}, {}):{}'.format(real_image_names[i], fake_image_names[i], l1_loss(real_images[i], fake_images[i]))) 
 
-    gray_real1_img_top = (gray_real1_img_top * 1.0)
-    gray_real2_img_top = (gray_real2_img_top * 1.0)
-    gray_fake1_img_top = (gray_fake1_img_top * 1.0)
-    gray_fake2_img_top = (gray_fake2_img_top * 1.0)
-
-    # L1損失を計算．
-    print('l1_loss(real1_img_top, real1_img_top)):', l1_loss(real1_img_top, real1_img_top))
-    print('l1_loss(real1_img_top, fake1_img_top)):', l1_loss(real1_img_top, fake1_img_top))
-    print('l1_loss(real2_img_top, fake2_img_top)):', l1_loss(real2_img_top, fake2_img_top))
-    
-    print('l1_loss(gray_real1_img_top, gray_fake1_img_top)):', l1_loss(gray_real1_img_top, gray_fake1_img_top))
-    print('l1_loss(gray_real2_img_top, gray_fake2_img_top)):', l1_loss(gray_real2_img_top, gray_fake2_img_top))
-    
-    print('l1_loss(real1_img_top, real2_img_top)):', l1_loss(real1_img_top, real2_img_top))
-    print('l1_loss(gray_real1_img_top, gray_fake2_img_top)):', l1_loss(gray_real1_img_top, gray_fake2_img_top))
-
-
-    #show(img_ch3)
-    #show(gray_img)
     #plt.show()
+
 
 def _l1_loss(img1, img2):
     #loss = torch.abs(img1 - img2).mean()

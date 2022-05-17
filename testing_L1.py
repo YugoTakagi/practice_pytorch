@@ -58,8 +58,8 @@ def main():
         #show(grid) 
 
         # L1損失を計算．
-        #print('l1_loss({}, {}):{}'.format(rin[i], fin[i], l1_loss(real_images[i], fake_images[i]))) 
-        print('l1_loss({}, {}):{}'.format(real_image_names[i], fake_image_names[i], l1_loss(real_images[i], fake_images[i]))) 
+        print('l1_loss({}, {}) : {}'.format(rin[i], fin[i], l1_loss(real_images[i], fake_images[i]))) 
+        #print('l1_loss({}, {}) : {}'.format(real_image_names[i], fake_image_names[i], l1_loss(real_images[i], fake_images[i]))) 
 
     #plt.show()
 
